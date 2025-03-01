@@ -1,7 +1,7 @@
 ## Live View
 Live view is at 
-https://ai-group-planner-gvje.vercel.app/
 
+https://ai-group-planner-gvje-git-dev-weebmaniac2314-gmailcoms-projects.vercel.app/
 
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
