@@ -1,9 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { AuthProvider } from '@/components/providers/AuthProvider';
+import FirebaseConnectionChecker from '@/components/ui/FirebaseConnectionChecker';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />
+          <FirebaseConnectionChecker />
         </AuthProvider>
       </body>
     </html>
