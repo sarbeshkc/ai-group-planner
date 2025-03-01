@@ -9,7 +9,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import PlanForm from '@/components/forms/PlanForm';
 
-export default function NewPlanPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function NewPlanPage({ params }: PageProps) {
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
