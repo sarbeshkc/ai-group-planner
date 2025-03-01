@@ -191,3 +191,20 @@ export const notifyDeadlineApproaching = async (
     { taskId, daysRemaining }
   );
 };
+
+// Notify user about group invitation
+export const notifyGroupInvite = async (
+  recipientId: string,
+  groupId: string,
+  groupName: string,
+  inviterName: string
+) => {
+  return createNotification(
+    recipientId,
+    'group_invite',
+    'Group Invitation',
+    `${inviterName} has invited you to join "${groupName}"`,
+    `/groups/${groupId}`,
+    { groupId, groupName }
+  );
+};
