@@ -1,5 +1,13 @@
 # PlanAI - AI-Powered Group Planning System
 
+## Live View
+Live view is at 
+
+https://ai-group-planner-gvje-git-dev-weebmaniac2314-gmailcoms-projects.vercel.app/
+
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
 [![Next.js](https://img.shields.io/badge/Next.js-15.x-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-9.x-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
