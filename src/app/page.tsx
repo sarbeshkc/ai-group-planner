@@ -1,218 +1,276 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import {
-  ArrowPathIcon,
-  CloudArrowUpIcon,
-  CogIcon,
-  LockClosedIcon,
-  ServerIcon,
-  UserGroupIcon,
-  CalendarIcon,
-  ChartBarIcon,
-} from '@heroicons/react/24/outline';
+import Button from "@/components/ui/Button"
+import { ArrowRight, Calendar, Users, BarChart3, RefreshCw, Shield, Bell, Zap } from "lucide-react"
+import Link from "next/link"
 
-const features = [
-  {
-    name: 'Intelligent Role Matching',
-    description:
-      'Our AI system matches team members to roles based on their skills, experience, and preferences, ensuring optimal team composition.',
-    icon: UserGroupIcon,
-  },
-  {
-    name: 'Adaptive Planning',
-    description:
-      'Plans automatically adapt to changing circumstances, constraints, and real-time updates from team members.',
-    icon: ArrowPathIcon,
-  },
-  {
-    name: 'Efficient Task Distribution',
-    description:
-      'AI-driven task assignment considers workload balance, timelines, dependencies, and individual capabilities.',
-    icon: CalendarIcon,
-  },
-  {
-    name: 'Multi-perspective Integration',
-    description:
-      'Process input from 5-10 team members simultaneously to create a coordinated plan that reflects all perspectives.',
-    icon: ChartBarIcon,
-  },
-  {
-    name: 'Secure Data Processing',
-    description:
-      'All your team and planning data is encrypted and processed with enterprise-grade security measures.',
-    icon: LockClosedIcon,
-  },
-  {
-    name: 'Real-time Updates',
-    description:
-      'Get immediate notifications and updates on plan changes, task completions, and team communications.',
-    icon: ServerIcon,
-  },
-];
-
-const testimonials = [
-  {
-    body: 'PlanAI has transformed how our team coordinates projects. What used to take days of back-and-forth now happens in minutes with much better outcomes.',
-    author: {
-      name: 'Emily Chen',
-      title: 'Project Manager at TechCorp',
-      imageUrl:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    },
-  },
-  {
-    body: 'As a student organization leader, PlanAI has been a game-changer for coordinating our events. The AI suggestions for task assignments are surprisingly insightful!',
-    author: {
-      name: 'Marcus Johnson',
-      title: 'President, University Tech Club',
-      imageUrl:
-        'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    },
-  },
-  {
-    body: 'Our community volunteer group now operates with the efficiency of a Fortune 500 company thanks to PlanAI. The role matching feature saved us countless hours.',
-    author: {
-      name: 'Sophia Williams',
-      title: 'Director, Community First',
-      imageUrl:
-        'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    },
-  },
-];
-
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <div className="bg-white">
-      {/* Hero section */}
-      <div className="relative bg-gray-50">
-        <div className="mx-auto max-w-7xl lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8">
-          <div className="px-6 pb-24 pt-10 sm:pb-32 lg:col-span-7 lg:px-0 lg:pb-56 lg:pt-48 xl:col-span-6">
-            <div className="mx-auto max-w-2xl lg:mx-0">
-              <div className="hidden sm:flex">
-                <div className="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                  Revolutionary group planning powered by AI.{' '}
-                  <a href="#" className="whitespace-nowrap font-semibold text-primary-600">
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    Learn more <span aria-hidden="true">&rarr;</span>
-                  </a>
-                </div>
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 z-0" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200">
+                <Zap className="w-4 h-4 mr-2" />
+                AI-Powered Planning
               </div>
-              <h1 className="mt-24 text-4xl font-bold tracking-tight text-gray-900 sm:mt-10 sm:text-6xl">
-                AI-Powered Group Planning System
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Plan Smarter, <span className="text-purple-600 dark:text-purple-400">Together</span>
               </h1>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                Transform how your team plans, coordinates, and executes projects with our intelligent platform. 
-                Harness the power of AI to optimize role assignments, task distribution, and real-time adaptations.
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl">
+                Transform team coordination with AI that optimizes roles and adapts in real-time.
               </p>
-              <div className="mt-10 flex items-center gap-x-6">
-                <Link
-                  href="/register"
-                  className="rounded-md bg-primary-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                >
-                  Get started
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/login" passHref>
+                  <Button size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                    Get Started
+                  </Button>
                 </Link>
-                <Link href="#features" className="text-sm font-semibold leading-6 text-gray-900">
-                  Learn more <span aria-hidden="true">→</span>
-                </Link>
+                <Button size="lg" variant="outline">
+                  Watch Demo
+                </Button>
               </div>
             </div>
-          </div>
-          <div className="relative lg:col-span-5 lg:-mr-8 xl:absolute xl:inset-0 xl:left-1/2 xl:mr-0">
-            <div className="aspect-[3/2] w-full bg-gray-50 object-cover lg:absolute lg:inset-0 lg:aspect-auto lg:h-full">
-              <div className="h-full w-full bg-gradient-to-r from-primary-400 to-secondary-400 opacity-70"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Feature section */}
-      <div className="py-24 sm:py-32" id="features">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-semibold leading-7 text-primary-600">Plan Smarter</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Everything you need to coordinate your team
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              Our AI-powered platform streamlines group coordination by intelligently processing input from all team members
-              to create optimized plans with ideal role assignments and task distributions.
-            </p>
-          </div>
-          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
-              {features.map((feature) => (
-                <div key={feature.name} className="relative pl-16">
-                  <dt className="text-base font-semibold leading-7 text-gray-900">
-                    <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600">
-                      <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
-                    </div>
-                    {feature.name}
-                  </dt>
-                  <dd className="mt-2 text-base leading-7 text-gray-600">{feature.description}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </div>
-
-      {/* Testimonial section */}
-      <div className="bg-gray-50 py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:mx-0">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Hear what our users have to say
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              From project managers to community organizers, see how PlanAI is transforming group coordination across industries.
-            </p>
-          </div>
-          <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-            {testimonials.map((testimonial) => (
-              <article key={testimonial.author.name} className="flex max-w-xl flex-col items-start">
-                <div className="relative mt-8 flex items-center gap-x-4">
-                  <img
-                    src={testimonial.author.imageUrl}
-                    alt=""
-                    className="h-10 w-10 rounded-full bg-gray-50"
-                  />
-                  <div className="text-sm leading-6">
-                    <p className="font-semibold text-gray-900">{testimonial.author.name}</p>
-                    <p className="text-gray-600">{testimonial.author.title}</p>
+            <div className="relative h-[350px] lg:h-[450px] rounded-xl overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-600 opacity-90" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-4/5 h-4/5">
+                  <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="80"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      className="text-purple-200 dark:text-purple-800"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="40"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      className="text-blue-300 dark:text-blue-700"
+                    />
+                    <line
+                      x1="100"
+                      y1="20"
+                      x2="100"
+                      y2="180"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-purple-400 dark:text-purple-600"
+                    />
+                    <line
+                      x1="20"
+                      y1="100"
+                      x2="180"
+                      y2="100"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-blue-400 dark:text-blue-600"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="5"
+                      fill="currentColor"
+                      className="text-purple-500 dark:text-purple-400 animate-pulse"
+                    />
+                    <circle
+                      cx="140"
+                      cy="60"
+                      r="3"
+                      fill="currentColor"
+                      className="text-blue-500 dark:text-blue-400 animate-ping"
+                    />
+                    <circle
+                      cx="60"
+                      cy="140"
+                      r="3"
+                      fill="currentColor"
+                      className="text-purple-500 dark:text-purple-400 animate-ping"
+                    />
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="3"
+                      fill="currentColor"
+                      className="text-blue-500 dark:text-blue-400 animate-ping"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="3"
+                      fill="currentColor"
+                      className="text-purple-500 dark:text-purple-400 animate-ping"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">AI Planning</p>
                   </div>
                 </div>
-                <p className="mt-4 text-base leading-6 text-gray-600">{testimonial.body}</p>
-              </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-white dark:bg-gray-900" id="features">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Key Features</h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              AI-powered planning that makes team coordination effortless
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Users,
+                title: "Smart Role Matching",
+                description: "AI matches team members to roles based on skills and preferences",
+              },
+              {
+                icon: RefreshCw,
+                title: "Adaptive Planning",
+                description: "Plans adapt to changing circumstances and team updates",
+              },
+              {
+                icon: Calendar,
+                title: "Task Distribution",
+                description: "Balanced workload assignment based on capabilities and timelines",
+              },
+              {
+                icon: BarChart3,
+                title: "Team Integration",
+                description: "Coordinate input from all team members into one cohesive plan",
+              },
+              {
+                icon: Shield,
+                title: "Secure Data",
+                description: "Enterprise-grade security for all your planning data",
+              },
+              {
+                icon: Bell,
+                title: "Real-time Updates",
+                description: "Instant notifications on plan changes and completions",
+              },
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
+                  <feature.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* CTA section */}
-      <div className="bg-white">
-        <div className="px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Ready to transform your team&apos;s planning?
+      {/* How It Works */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">How It Works</h2>
+            <p className="text-gray-600 dark:text-gray-300">Three simple steps to transform your team planning</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto">
+            {[
+              {
+                step: "01",
+                title: "Add Team",
+                description: "Input team members, skills, and availability",
+              },
+              {
+                step: "02",
+                title: "Set Goals",
+                description: "Define project objectives and timeline",
+              },
+              {
+                step: "03",
+                title: "AI Plans",
+                description: "Get optimal role assignments and task distribution",
+              },
+            ].map((step, index) => (
+              <div key={index} className="flex-1 relative">
+                <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm h-full">
+                  <div className="text-4xl font-bold text-purple-200 dark:text-purple-800 mb-4">{step.step}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{step.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300">{step.description}</p>
+                </div>
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                    <ArrowRight className="h-8 w-8 text-purple-300 dark:text-purple-700" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+              Ready to revolutionize your team planning?
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-gray-600">
-              Join thousands of teams who are already using PlanAI to streamline coordination, 
-              save time, and achieve better outcomes.
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+              Join thousands of teams already using PlanAI to streamline coordination and boost productivity.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link
-                href="/register"
-                className="rounded-md bg-primary-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-              >
-                Get started for free
-              </Link>
-              <Link href="#" className="text-sm font-semibold leading-6 text-gray-900">
-                Learn more <span aria-hidden="true">→</span>
-              </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="primary">
+                Start Free Trial
+              </Button>
+              <Button size="lg" variant="outline">
+                Schedule Demo
+              </Button>
+            </div>
+            <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">No credit card required. 14-day free trial.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Visual Divider Section */}
+      <section className="py-20 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <div className="bg-white dark:bg-gray-900 px-4">
+                <svg
+                  className="h-12 w-12 text-purple-600 dark:text-purple-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  );
+  )
 }
+
