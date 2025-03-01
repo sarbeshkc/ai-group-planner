@@ -36,6 +36,29 @@ ChartJS.register(
   Filler
 );
 
+interface Task {
+  id: string;
+  status: string;
+  priority: string;
+  planId: string;
+  assignedTo: string;
+}
+
+interface Plan {
+  id: string;
+  title: string;
+  createdBy: string;
+  groupId: string;
+}
+
+interface Activity {
+  id: string;
+  userId: string;
+  timestamp: {
+    toDate: () => Date;
+  };
+}
+
 interface AnalyticsWidgetProps {
   size: 'small' | 'medium' | 'large';
 }
@@ -65,7 +88,7 @@ export default function AnalyticsWidget({ size }: AnalyticsWidgetProps) {
         );
         
         const tasksSnapshot = await getDocs(tasksQuery);
-        const tasks = tasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tasks = tasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
         
         // Calculate task status distribution
         const tasksByStatus = {
@@ -88,7 +111,7 @@ export default function AnalyticsWidget({ size }: AnalyticsWidgetProps) {
         );
         
         const plansSnapshot = await getDocs(plansQuery);
-        const plans = plansSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const plans = plansSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plan));
         
         // Calculate plan completion percentages
         const planCompletion = await Promise.all(plans.map(async plan => {
@@ -99,7 +122,7 @@ export default function AnalyticsWidget({ size }: AnalyticsWidgetProps) {
           );
           
           const planTasksSnapshot = await getDocs(planTasksQuery);
-          const planTasks = planTasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const planTasks = planTasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
           
           const totalTasks = planTasks.length;
           const completedTasks = planTasks.filter(task => task.status === 'completed').length;
@@ -117,7 +140,7 @@ export default function AnalyticsWidget({ size }: AnalyticsWidgetProps) {
         );
         
         const activitySnapshot = await getDocs(activityQuery);
-        const activities = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const activities = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
         
         // Group activities by date
         const activityByDate = activities.reduce((acc, activity) => {

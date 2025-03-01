@@ -8,14 +8,18 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import PlanForm from '@/components/forms/PlanForm';
+import { use } from 'react';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function NewPlanPage({ params }: PageProps) {
+export default function NewPlanPage(props: PageProps) {
+  const { params } = props;
+  const { id } = use(params);
+  
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +35,7 @@ export default function NewPlanPage({ params }: PageProps) {
       }
       
       try {
-        const groupDoc = await getDoc(doc(db, 'groups', params.id));
+        const groupDoc = await getDoc(doc(db, 'groups', id));
         
         if (!groupDoc.exists()) {
           setError('Group not found');
@@ -58,7 +62,7 @@ export default function NewPlanPage({ params }: PageProps) {
     };
     
     fetchGroupDetails();
-  }, [params.id, user, router]);
+  }, [id, user, router]);
   
   if (loading) {
     return (
@@ -84,7 +88,7 @@ export default function NewPlanPage({ params }: PageProps) {
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <div className="mb-6">
-        <Link href={`/groups/${params.id}`} className="text-blue-600 hover:underline">
+        <Link href={`/groups/${id}`} className="text-blue-600 hover:underline">
           ← Back to {groupName}
         </Link>
       </div>
@@ -94,7 +98,7 @@ export default function NewPlanPage({ params }: PageProps) {
         Our AI will generate a complete plan with tasks based on your input
       </p>
       
-      <PlanForm groupId={params.id} />
+      <PlanForm groupId={id} />
     </div>
   );
 }

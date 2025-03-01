@@ -1,7 +1,7 @@
 // src/app/plans/[id]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
@@ -31,16 +31,17 @@ interface Plan {
   createdBy: string;
 }
 
-export default function PlanDetailPage({ params }: { params: { id: string } }) {
+export default function PlanDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const router = useRouter();
   const { user } = useAuth();
-  
+
   useEffect(() => {
     const fetchPlanAndTasks = async () => {
       if (!user) return;
@@ -91,7 +92,7 @@ export default function PlanDetailPage({ params }: { params: { id: string } }) {
     
     fetchPlanAndTasks();
   }, [params.id, user]);
-  
+
   const updateTaskStatus = async (taskId: string, newStatus: 'pending' | 'in-progress' | 'completed') => {
     try {
       await updateDoc(doc(db, 'tasks', taskId), {
@@ -106,7 +107,7 @@ export default function PlanDetailPage({ params }: { params: { id: string } }) {
       console.error('Error updating task:', err);
     }
   };
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -114,7 +115,7 @@ export default function PlanDetailPage({ params }: { params: { id: string } }) {
       </div>
     );
   }
-  
+
   if (error || !plan) {
     return (
       <div className="max-w-4xl mx-auto py-10 px-4">

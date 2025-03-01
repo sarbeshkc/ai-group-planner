@@ -1,5 +1,5 @@
 // src/lib/firebase/realtimeSync.ts
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from './config';
 
 // Set up real-time listening for a specific document
@@ -30,7 +30,7 @@ export const updateDocumentSafely = async (
   // If lastUpdated is provided, add a condition to prevent overwriting newer changes
   if (lastUpdated) {
     // Get the current document
-    const snapshot = await docRef.get();
+    const snapshot = await getDoc(docRef);
     const data = snapshot.data();
     
     // Compare timestamps and only update if the document hasn't been changed since lastUpdated

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -16,13 +16,14 @@ import {
 } from '@heroicons/react/24/outline';
 
 interface GroupPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function GroupDetailPage({ params }: GroupPageProps) {
+export default function GroupDetailPage(props: GroupPageProps) {
+  const params = use(props.params);
   // Access params.id safely
   const groupId = params.id;
-  
+
   const [group, setGroup] = useState<any>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -30,10 +31,10 @@ export default function GroupDetailPage({ params }: GroupPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTab, setSelectedTab] = useState(0);
-  
+
   const router = useRouter();
   const { user } = useAuth();
-  
+
   useEffect(() => {
     const fetchGroupDetails = async () => {
       if (!user) {
@@ -116,7 +117,7 @@ export default function GroupDetailPage({ params }: GroupPageProps) {
     
     fetchGroupDetails();
   }, [groupId, user, router]);
-  
+
   // Format date for display
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
@@ -131,7 +132,7 @@ export default function GroupDetailPage({ params }: GroupPageProps) {
       </div>
     );
   }
-  
+
   if (error || !group) {
     return (
       <div className="max-w-4xl mx-auto py-10 px-4">

@@ -156,7 +156,7 @@ async function generateAITasks(
       }
     } catch (error) {
       // Handle network errors, timeouts, or aborted requests
-      if (error.name === 'AbortError') {
+      if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
         console.error("Request to Hugging Face API timed out");
       } else {
         console.error("Error calling Hugging Face API:", error);

@@ -1,5 +1,5 @@
 // src/lib/firebase/notifications.ts
-import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, serverTimestamp, limit as firestoreLimit, writeBatch } from 'firebase/firestore';
 import { db } from './config';
 
 export type NotificationType = 
@@ -77,13 +77,13 @@ export const getUnreadNotifications = async (userId: string) => {
 };
 
 // Get all notifications for a user
-export const getAllNotifications = async (userId: string, limit = 50) => {
+export const getAllNotifications = async (userId: string, limitCount = 50) => {
   try {
     const q = query(
       collection(db, 'notifications'),
       where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
-      limit(limit)
+      firestoreLimit(limitCount)
     );
     
     const snapshot = await getDocs(q);
@@ -124,7 +124,7 @@ export const markAllNotificationsAsRead = async (userId: string) => {
     
     const snapshot = await getDocs(q);
     
-    const batch = db.batch();
+    const batch = writeBatch(db);
     
     snapshot.docs.forEach(doc => {
       batch.update(doc.ref, {
