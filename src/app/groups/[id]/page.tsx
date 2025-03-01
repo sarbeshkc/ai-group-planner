@@ -8,6 +8,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { db } from '@/lib/firebase/config';
 import Button from '@/components/ui/Button';
 import GroupChat from '@/components/chat/GroupChat';
+import InvitationForm from '@/components/groups/InvitationForm';
 import { Tab } from '@headlessui/react';
 import { 
   UserGroupIcon, 
@@ -31,6 +32,7 @@ export default function GroupDetailPage(props: GroupPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTab, setSelectedTab] = useState(0);
+  const [showInviteForm, setShowInviteForm] = useState(false);
 
   const router = useRouter();
   const { user } = useAuth();
@@ -319,7 +321,27 @@ export default function GroupDetailPage(props: GroupPageProps) {
             
             {/* Members Panel */}
             <Tab.Panel className="rounded-xl bg-white p-3 animate-fadeIn">
+              {group && group.createdBy === user?.uid && showInviteForm && (
+                <div className="mb-6">
+                  <InvitationForm 
+                    groupId={groupId} 
+                    groupName={group.name} 
+                    onInvitationSent={() => setShowInviteForm(false)}
+                  />
+                </div>
+              )}
               <div className="bg-white rounded-lg overflow-hidden">
+                <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium">Group Members</h3>
+                  {group && group.createdBy === user?.uid && (
+                    <Button
+                      onClick={() => setShowInviteForm(!showInviteForm)}
+                      size="sm"
+                    >
+                      {showInviteForm ? 'Hide Invite Form' : 'Invite People'}
+                    </Button>
+                  )}
+                </div>
                 <ul className="divide-y divide-gray-200">
                   {members.map((member) => (
                     <li key={member.id} className="p-4 flex items-center">

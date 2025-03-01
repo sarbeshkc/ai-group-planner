@@ -13,6 +13,7 @@ import {
     getDoc
   } from 'firebase/firestore';
   import { db } from './config';
+  import { notifyGroupInvite } from './notifications';
   
   // Send invitation to a user
   export const inviteUserToGroup = async (
@@ -35,6 +36,27 @@ import {
         status: 'pending',
         createdAt: serverTimestamp(),
       });
+      
+      // Try to find the user by email to send a notification
+      const userQuery = query(
+        collection(db, 'users'),
+        where('email', '==', recipientEmail)
+      );
+      
+      const userSnapshot = await getDocs(userQuery);
+      
+      if (!userSnapshot.empty) {
+        // User exists, send them a notification
+        const userData = userSnapshot.docs[0].data();
+        const userId = userSnapshot.docs[0].id;
+        
+        await notifyGroupInvite(
+          userId,
+          groupId,
+          groupName,
+          inviterName
+        );
+      }
       
       // Optionally send email notification through a server function
       // ...

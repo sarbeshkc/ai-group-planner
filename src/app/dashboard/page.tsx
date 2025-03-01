@@ -12,6 +12,7 @@ import ActivityFeed from '@/components/activity/ActivityFeed';
 import ActivityWidget from '@/components/dashboard/ActivityWidget';
 import AnalyticsWidget from '@/components/dashboard/AnalyticsWidget';
 import UpcomingDeadlinesWidget from '@/components/dashboard/UpcomingDeadlinesWidget';
+import InvitationList from '@/components/groups/InvitationList';
 import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
@@ -228,6 +229,11 @@ export default function DashboardPage() {
             Refresh
           </button>
         </div>
+      </div>
+      
+      {/* Invitations Section */}
+      <div className="mb-8">
+        <InvitationList />
       </div>
       
       {isConfiguring && (
