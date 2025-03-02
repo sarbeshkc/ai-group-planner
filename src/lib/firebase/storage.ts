@@ -30,10 +30,10 @@ export const uploadFile = async (
     // Create a reference to the file in Firebase Storage
     const path = `${entityType}s/${entityId}/${Date.now()}_${file.name}`;
     const storageRef = ref(storage, path);
-    
+
     // Upload the file
     const uploadTask = uploadBytesResumable(storageRef, file);
-    
+
     // Return a promise that resolves when the upload is complete
     return new Promise((resolve, reject) => {
       uploadTask.on(
@@ -55,7 +55,7 @@ export const uploadFile = async (
           try {
             // Get the download URL
             const url = await getDownloadURL(uploadTask.snapshot.ref);
-            
+
             // Store metadata in Firestore
             const fileData = {
               name: file.name,
@@ -69,9 +69,9 @@ export const uploadFile = async (
               entityType,
               entityId
             };
-            
+
             const docRef = await addDoc(collection(db, 'files'), fileData);
-            
+
             // Create activity record
             await addDoc(collection(db, 'activities'), {
               type: 'upload',
@@ -83,7 +83,7 @@ export const uploadFile = async (
               timestamp: serverTimestamp(),
               details: { fileId: docRef.id, fileType: file.type }
             });
-            
+
             // Resolve with file metadata including the document ID
             resolve({
               id: docRef.id,
@@ -115,9 +115,9 @@ export const getEntityFiles = async (
       where('entityType', '==', entityType),
       where('entityId', '==', entityId)
     );
-    
+
     const snapshot = await getDocs(q);
-    
+
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -133,27 +133,27 @@ export const deleteFile = async (fileId: string, userId: string): Promise<boolea
   try {
     // Get file metadata
     const fileDoc = await getDoc(doc(db, 'files', fileId));
-    
+
     if (!fileDoc.exists()) {
       throw new Error('File not found');
     }
-    
+
     const fileData = fileDoc.data() as FileMetadata;
-    
+
     // Check if user has permission (file uploader or with admin role)
     if (fileData.uploadedBy !== userId) {
       // For more complex permission checks, you would verify group/plan admin status here
       // For now, we simply check if the user is the one who uploaded the file
       throw new Error('Permission denied');
     }
-    
+
     // Delete the file from Storage
     const storageRef = ref(storage, fileData.path);
     await deleteObject(storageRef);
-    
+
     // Delete metadata from Firestore
     await deleteDoc(doc(db, 'files', fileId));
-    
+
     return true;
   } catch (error) {
     console.error('Error deleting file:', error);

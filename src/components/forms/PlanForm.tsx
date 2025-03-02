@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { generatePlan } from '@/lib/ai/aiPlanner';
-import { CalendarIcon, UsersIcon, LightBulbIcon, SparklesIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, UsersIcon, LightBulbIcon, SparklesIcon, ClockIcon, CogIcon } from '@heroicons/react/24/outline';
 
 interface PlanFormProps {
   groupId: string;
@@ -25,6 +25,12 @@ export default function PlanForm({ groupId }: PlanFormProps) {
   
   const router = useRouter();
   const { user } = useAuth();
+
+  // Determine the plan generation method based on environment variables
+  const forceLocalModel = process.env.NEXT_PUBLIC_FORCE_LOCAL_MODEL === 'true';
+  const disableExternalAI = process.env.NEXT_PUBLIC_DISABLE_EXTERNAL_AI === 'true';
+  const forceAIModels = process.env.NEXT_PUBLIC_FORCE_AI_MODELS === 'true';
+  const isAIMethod = forceAIModels ? true : !(forceLocalModel || disableExternalAI);
 
   // Validate dates
   const isDateValid = () => {
@@ -259,22 +265,41 @@ export default function PlanForm({ groupId }: PlanFormProps) {
           </div>
         </div>
         
-        <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+        <div className={`p-4 rounded-md border ${isAIMethod ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100'}`}>
           <div className="flex">
             <div className="flex-shrink-0">
-              <SparklesIcon className="h-5 w-5 text-blue-500" />
+              {isAIMethod ? (
+                <SparklesIcon className="h-5 w-5 text-blue-500" />
+              ) : (
+                <CogIcon className="h-5 w-5 text-gray-500" />
+              )}
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">AI-Powered Plan Generation</h3>
+              <h3 className="text-sm font-medium text-blue-800">
+                {isAIMethod ? 'AI-Powered Plan Generation' : 'Rule-Based Plan Generation'}
+              </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>
-                  Our AI will analyze your inputs to create:
+                  {isAIMethod 
+                    ? 'Our AI will analyze your inputs to create:' 
+                    : 'Our system will organize your plan with:'}
                 </p>
                 <ul className="list-disc pl-5 space-y-1 mt-1">
-                  <li>Customized tasks based on your objectives</li>
-                  <li>Suggested team roles for optimal collaboration</li>
-                  <li>Intelligent task scheduling across your timeline</li>
-                  <li>Priority levels and estimated effort for each task</li>
+                  {isAIMethod ? (
+                    <>
+                      <li>Customized tasks based on your objectives</li>
+                      <li>Suggested team roles for optimal collaboration</li>
+                      <li>Intelligent task scheduling across your timeline</li>
+                      <li>Priority levels and estimated effort for each task</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>Standard tasks based on your plan type</li>
+                      <li>Common roles for your team structure</li>
+                      <li>Evenly distributed tasks across your timeline</li>
+                      <li>Default priority levels for each task</li>
+                    </>
+                  )}
                 </ul>
               </div>
             </div>
@@ -291,13 +316,13 @@ export default function PlanForm({ groupId }: PlanFormProps) {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg> : 
-                <SparklesIcon className="h-5 w-5" />
+                isAIMethod ? <SparklesIcon className="h-5 w-5" /> : <CogIcon className="h-5 w-5" />
             }
           >
             {aiStatus === 'loading' ? 'Generating Plan...' : 
              aiStatus === 'success' ? 'Plan Generated!' : 
              aiStatus === 'error' ? 'Try Again' : 
-             'Generate AI Plan'}
+             isAIMethod ? 'Generate AI Plan' : 'Generate Plan'}
           </Button>
         </div>
       </form>

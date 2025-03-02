@@ -8,6 +8,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import PlanForm from '@/components/forms/PlanForm';
+import PlanGenerationMethod from '@/components/ui/PlanGenerationMethod';
 import { use } from 'react';
 
 interface PageProps {
@@ -23,6 +24,12 @@ export default function NewPlanPage(props: PageProps) {
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Determine the plan generation method based on environment variables
+  const forceLocalModel = process.env.NEXT_PUBLIC_FORCE_LOCAL_MODEL === 'true';
+  const disableExternalAI = process.env.NEXT_PUBLIC_DISABLE_EXTERNAL_AI === 'true';
+  const forceAIModels = process.env.NEXT_PUBLIC_FORCE_AI_MODELS === 'true';
+  const planMethod = forceAIModels ? 'ai' : (forceLocalModel || disableExternalAI ? 'rule-based' : 'ai');
   
   const router = useRouter();
   const { user } = useAuth();
@@ -93,9 +100,15 @@ export default function NewPlanPage(props: PageProps) {
         </Link>
       </div>
       
-      <h1 className="text-3xl font-bold mb-6 text-center">Create Plan for {groupName}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-center">Create Plan for {groupName}</h1>
+        <PlanGenerationMethod method={planMethod} />
+      </div>
+      
       <p className="text-center text-gray-600 mb-8">
-        Our AI will generate a complete plan with tasks based on your input
+        {planMethod === 'ai' 
+          ? 'Our AI will generate a complete plan with tasks based on your input' 
+          : 'Tasks will be generated using rule-based planning'}
       </p>
       
       <PlanForm groupId={id} />
