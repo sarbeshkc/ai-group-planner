@@ -92,32 +92,32 @@ async function generateTasksWithOpenAI(
     console.warn("OpenAI API token not found");
     return { tasks: [], success: false };
   }
-  
+
   // Explicitly handle common OpenAI API issues
   const handleOpenAIError = (errorText: string) => {
     // Check for quota exceeded errors with various phrasings
-    if (errorText.includes("exceeded your current quota") || 
-        errorText.includes("quota exceeded") || 
+    if (errorText.includes("exceeded your current quota") ||
+        errorText.includes("quota exceeded") ||
         errorText.includes("rate limit") ||
         errorText.includes("billing") && errorText.includes("check")) {
       console.warn("🚨 OPENAI QUOTA EXCEEDED: You have exceeded your current quota. Please check your plan and billing details.");
       console.log("Falling back to alternative planning method due to quota limits");
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: "OpenAI API quota exceeded. Using alternative planning method."
       };
     } else if (errorText.includes("invalid_api_key")) {
       console.warn("INVALID OPENAI API KEY: The API key provided is not valid");
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: "Invalid OpenAI API key. Using alternative planning method."
       };
     } else {
       console.error("Error from OpenAI API:", errorText);
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: `OpenAI API error: ${errorText.substring(0, 100)}...`
       };
@@ -125,12 +125,12 @@ async function generateTasksWithOpenAI(
   };
 
   // Create a simpler system prompt
-  const systemPrompt = useSimplePrompt 
-    ? `You are a task planning assistant.` 
+  const systemPrompt = useSimplePrompt
+    ? `You are a task planning assistant.`
     : `You are a task planning assistant. Create tasks for ${planType} plans.`;
 
   // Create user prompt based on complexity level
-  const userPrompt = useSimplePrompt 
+  const userPrompt = useSimplePrompt
     ? `Create a task plan for ${planType}: "${planTitle}" with objectives: ${objectives.join(', ')}. Return JSON with tasks array where each task has title, description, priority fields.`
     : `
 Create a task plan for a ${planType}:
@@ -204,16 +204,16 @@ Return ONLY a JSON object with this format:
 
     const result = await response.json();
     const generatedContent = result.choices[0]?.message.content || '';
-    
-    console.log("Generated content from OpenAI (preview):", 
+
+    console.log("Generated content from OpenAI (preview):",
               generatedContent.length > 100 ? generatedContent.substring(0, 100) + "..." : generatedContent);
-    
+
     // Log the full response for debugging
     logAIResponse('OPENAI', generatedContent);
 
     // Multiple approaches to parse the response
     let parsedResponse = null;
-    
+
     // First attempt: direct JSON parse
     try {
       parsedResponse = JSON.parse(generatedContent);
@@ -221,13 +221,13 @@ Return ONLY a JSON object with this format:
     } catch (parseError) {
       console.log("OpenAI response is not direct JSON, trying to extract...");
     }
-    
+
     // Second attempt: Use regex to find JSON
     if (!parsedResponse) {
       try {
         const jsonRegex = /\{[\s\S]*\}/g;
         const jsonMatch = generatedContent.match(jsonRegex);
-        
+
         if (jsonMatch && jsonMatch.length > 0) {
           parsedResponse = JSON.parse(jsonMatch[0]);
           console.log("Successfully extracted JSON from OpenAI using regex");
@@ -236,7 +236,7 @@ Return ONLY a JSON object with this format:
         console.log("Failed to extract JSON from OpenAI with regex");
       }
     }
-    
+
     // If we have a parsed response, validate and return it
     if (parsedResponse) {
       // Validate the response format
@@ -244,31 +244,31 @@ Return ONLY a JSON object with this format:
         console.log("Invalid response format from OpenAI, no tasks array found");
         return { tasks: [], success: false };
       }
-      
+
       // Filter and validate tasks
       const validTasks = parsedResponse.tasks
-        .filter((task: any) => 
-          task && 
-          task.title && 
-          task.description && 
+        .filter((task: any) =>
+          task &&
+          task.title &&
+          task.description &&
           (!task.priority || ['high', 'medium', 'low'].includes(task.priority))
         )
         .map((task: any) => ({
           title: task.title,
           description: task.description,
           priority: task.priority || 'medium',
-          estimatedHours: typeof task.estimatedHours === 'number' ? 
-                        task.estimatedHours : 
+          estimatedHours: typeof task.estimatedHours === 'number' ?
+                        task.estimatedHours :
                         Math.floor(Math.random() * 8) + 2, // 2-10 hours if not specified
           category: task.category || null,
           dependencies: Array.isArray(task.dependencies) ? task.dependencies : []
         }));
-      
+
       if (validTasks.length === 0) {
         console.log("No valid tasks found in OpenAI response");
         return { tasks: [], success: false };
       }
-      
+
       // Return the validated response
       return {
         tasks: validTasks,
@@ -280,18 +280,18 @@ Return ONLY a JSON object with this format:
     } else {
       // Last resort: Try to extract tasks from text if JSON parsing failed
       console.log("Could not parse JSON from OpenAI response, trying to extract tasks from text");
-      
+
       // Log the raw response for debugging
       console.log("==== OPENAI RESPONSE TEXT ====");
       console.log(generatedContent.substring(0, 500) + (generatedContent.length > 500 ? "..." : ""));
       console.log("==== END OPENAI RESPONSE TEXT ====");
-      
+
       // Try to extract tasks from the text response
       const extractedTasks: AITaskSuggestion[] = [];
-      
+
       // Pattern 1: Look for numbered or bulleted tasks with title and description
       const taskPattern = /(?:^|\n)(?:\d+\.|\*|\-)\s+(?:Task:?\s*)?([^\n]+)(?:\n+(?:Description:?\s*)?([^\n]+))?(?:\n+(?:Priority:?\s*)?(high|medium|low))?(?:\n+(?:Estimated Hours:?\s*)?(\d+(?:\.\d+)?))?(?:\n+(?:Category:?\s*)?([^\n]+))?/gi;
-      
+
       let match;
       while ((match = taskPattern.exec(generatedContent)) !== null) {
         const [_, title, description, priority, hours, category] = match;
@@ -305,10 +305,10 @@ Return ONLY a JSON object with this format:
           });
         }
       }
-      
+
       // Pattern 2: Look for tasks with explicit markers
       const markedTaskPattern = /Task(?:\s+\d+)?:?\s*([^\n]+)(?:\n+Description:?\s*([^\n]+))?(?:\n+Priority:?\s*(high|medium|low))?(?:\n+Estimated Hours:?\s*(\d+(?:\.\d+)?))?(?:\n+Category:?\s*([^\n]+))?/gi;
-      
+
       while ((match = markedTaskPattern.exec(generatedContent)) !== null) {
         const [_, title, description, priority, hours, category] = match;
         if (title && !extractedTasks.some(t => t.title === title.trim())) {
@@ -321,14 +321,14 @@ Return ONLY a JSON object with this format:
           });
         }
       }
-      
+
       // Pattern 3: Look for markdown-style lists if we still don't have tasks
       if (extractedTasks.length === 0) {
         console.log("No tasks found with standard patterns, trying to extract from markdown lists");
-        
+
         // Look for markdown-style lists (- Task: description)
         const markdownListPattern = /(?:^|\n)(?:\-|\*|\d+\.)\s+([^:\n]+)(?::?\s*([^\n]+))?/gi;
-        
+
         while ((match = markdownListPattern.exec(generatedContent)) !== null) {
           const [_, titlePart, descriptionPart] = match;
           if (titlePart) {
@@ -346,11 +346,11 @@ Return ONLY a JSON object with this format:
           }
         }
       }
-      
+
       // Pattern 4: Last resort - look for sentences that might be tasks
       if (extractedTasks.length === 0) {
         console.log("No tasks found in lists, trying to extract from sentences");
-        
+
         // Split by sentences and look for potential task descriptions
         const sentences = generatedContent.split(/[.!?][\s\n]+/);
         for (const sentence of sentences) {
@@ -367,7 +367,7 @@ Return ONLY a JSON object with this format:
           }
         }
       }
-      
+
       // If we found tasks in the text, use them
       if (extractedTasks.length > 0) {
         console.log(`Successfully extracted ${extractedTasks.length} tasks from OpenAI text response`);
@@ -381,7 +381,7 @@ Return ONLY a JSON object with this format:
           ]
         };
       }
-      
+
       // If no tasks were found, return an error
       console.log("Could not extract any valid tasks from OpenAI response");
       return {
@@ -412,32 +412,32 @@ async function generateTasksWithHuggingFace(
 ): Promise<AIServiceResponse> {
   // Get API token from environment variable
   const API_TOKEN = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
-  
+
   if (!API_TOKEN) {
     console.warn("Hugging Face API token not found");
     return { tasks: [], success: false };
   }
-  
+
   // Handle Hugging Face API errors more explicitly
   const handleHuggingFaceError = (url: string, errorText: string) => {
     if (errorText.includes("auth method doesn't allow")) {
       console.warn(`HUGGING FACE PERMISSION ERROR: Your token doesn't have inference permissions. Please check the "Make calls to inference providers" and "Make calls to inference Endpoints" options in your token settings.`);
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: "Hugging Face API permission error. Using alternative planning method."
       };
     } else if (errorText.includes("does not exist")) {
       console.warn(`HUGGING FACE MODEL ERROR: The specified model does not exist or is not accessible. Trying fallback model.`);
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: "Hugging Face model not accessible. Trying fallback model."
       };
     } else if (errorText.includes("tokens + `max_new_tokens` must be <=")) {
       console.warn(`HUGGING FACE TOKEN LIMIT ERROR: Reducing token count for next attempt.`);
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: "Hugging Face token limit exceeded. Trying with reduced token count."
       };
@@ -445,18 +445,18 @@ async function generateTasksWithHuggingFace(
       console.error(`Error from Hugging Face API (${url}):`, errorText);
       // Add a more visible log for debugging
       console.log(`🚨 HUGGING FACE API ERROR - Using fallback methods`);
-      return { 
-        tasks: [], 
+      return {
+        tasks: [],
         success: false,
         error: `Hugging Face API error: ${errorText.substring(0, 100)}...`
       };
     }
   };
-  
+
   // Select more reliable models
   let model = "";
   let fallbackModel = "";
-  
+
   switch (attemptNumber) {
     case 1:
       model = "gpt2"; // This is a reliable model with basic permissions
@@ -472,11 +472,11 @@ async function generateTasksWithHuggingFace(
       fallbackModel = "facebook/opt-125m";
       break;
   }
-  
+
   // Simpler prompts to avoid token limits
   let prompt = "";
   const maxTokens = 100; // Much smaller to avoid token limit errors
-  
+
   // Adjust prompt complexity based on attempt number - simplify for better chances of success
   if (attemptNumber === 1) {
     prompt = `Create a plan for ${planType} "${planTitle}" with objectives: ${objectives.slice(0, 2).join(", ")}`;
@@ -485,7 +485,7 @@ async function generateTasksWithHuggingFace(
   } else {
     prompt = `Generate tasks for ${planType}`;
   }
-  
+
   // Prepare the API request with appropriate parameters
   const requestData = {
     inputs: prompt,
@@ -497,20 +497,20 @@ async function generateTasksWithHuggingFace(
       return_full_text: false
     }
   };
-  
+
   const makeRequest = async (url: string, timeoutMs: number = 20000) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       console.log(`Request to ${url} timed out after ${timeoutMs/1000} seconds, aborting.`);
       controller.abort();
     }, timeoutMs);
-    
+
     try {
       // Extract just the model name from the URL
       const modelPath = url.split('/models/')[1];
-      
+
       console.log(`Attempting to call Hugging Face API with model: ${modelPath} via proxy`);
-      
+
       // Use the proxy endpoint instead of direct HF API
       const response = await fetch('/api/huggingface-proxy', {
         method: 'POST',
@@ -527,53 +527,53 @@ async function generateTasksWithHuggingFace(
         }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         return handleHuggingFaceError(url, errorText);
       }
-      
+
       console.log(`Successfully received response from proxy for model: ${modelPath}`);
       const responseData = await response.json();
-      
+
       // Check if the response contains an error message from our proxy
       if (responseData.generated_text && responseData.generated_text.startsWith('Error:')) {
         return handleHuggingFaceError(url, responseData.generated_text);
       }
-      
+
       return responseData;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       // Check specifically for abort errors
       if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('abort'))) {
         console.warn(`Network timeout when calling ${url} - this is expected during development or with free API tiers`);
-        return { 
-          tasks: [], 
+        return {
+          tasks: [],
           success: false,
           error: "Request to Hugging Face API timed out. Using alternative planning method."
         };
       } else {
-        console.error(`Error calling Hugging Face API (${url}):`, error);
-        return { 
-          tasks: [], 
+      console.error(`Error calling Hugging Face API (${url}):`, error);
+        return {
+          tasks: [],
           success: false,
           error: error instanceof Error ? error.message : "Unknown error calling Hugging Face API"
         };
       }
     }
   };
-  
+
   // Try primary model first, then fallback
   const modelUrl = `https://api-inference.huggingface.co/models/${model}`;
   const fallbackUrl = `https://api-inference.huggingface.co/models/${fallbackModel}`;
-  
+
   const timeout = attemptNumber === 1 ? 30000 : 20000; // Longer timeout for first attempt
-  
+
   let result = await makeRequest(modelUrl, timeout);
-  
+
   if (!result) {
     console.log(`Model ${model} failed, trying fallback model: ${fallbackModel}`);
     result = await makeRequest(fallbackUrl, timeout);
@@ -581,13 +581,13 @@ async function generateTasksWithHuggingFace(
 
   // Trying to parse JSON from the text response
   if (result) {
-    // Extract the generated text from the response
-    let generatedText = '';
-    
-    if (Array.isArray(result)) {
-      generatedText = result[0]?.generated_text || '';
+  // Extract the generated text from the response
+  let generatedText = '';
+
+  if (Array.isArray(result)) {
+    generatedText = result[0]?.generated_text || '';
     } else if (typeof result === 'object' && result !== null) {
-      generatedText = result.generated_text || '';
+    generatedText = result.generated_text || '';
     } else if (typeof result === 'string') {
       generatedText = result;
     } else {
@@ -598,24 +598,24 @@ async function generateTasksWithHuggingFace(
         console.error("Cannot stringify Hugging Face response:", e);
       }
     }
-    
-    console.log("Generated text from Hugging Face (preview):", 
+
+    console.log("Generated text from Hugging Face (preview):",
                 generatedText.length > 100 ? generatedText.substring(0, 100) + "..." : generatedText);
-    
+
     // Log the full response for debugging
     logAIResponse('HUGGING FACE', generatedText);
-    
+
     // Try to extract tasks from the text response
     const extractedTasks: AITaskSuggestion[] = [];
-    
+
     // Log the raw response for debugging
     console.log("==== HUGGING FACE TEXT EXTRACTION ====");
     console.log(generatedText.substring(0, 500) + (generatedText.length > 500 ? "..." : ""));
     console.log("==== END HUGGING FACE TEXT EXTRACTION ====");
-    
+
     // Pattern 1: Look for numbered or bulleted tasks with title and description
     const taskPattern = /(?:^|\n)(?:\d+\.|\*|\-)\s+(?:Task:?\s*)?([^\n]+)(?:\n+(?:Description:?\s*)?([^\n]+))?(?:\n+(?:Priority:?\s*)?(high|medium|low))?(?:\n+(?:Estimated Hours:?\s*)?(\d+(?:\.\d+)?))?(?:\n+(?:Category:?\s*)?([^\n]+))?/gi;
-    
+
     let match;
     while ((match = taskPattern.exec(generatedText)) !== null) {
       const [_, title, description, priority, hours, category] = match;
@@ -629,10 +629,10 @@ async function generateTasksWithHuggingFace(
         });
       }
     }
-    
+
     // Pattern 2: Look for tasks with explicit markers
     const markedTaskPattern = /Task(?:\s+\d+)?:?\s*([^\n]+)(?:\n+Description:?\s*([^\n]+))?(?:\n+Priority:?\s*(high|medium|low))?(?:\n+Estimated Hours:?\s*(\d+(?:\.\d+)?))?(?:\n+Category:?\s*([^\n]+))?/gi;
-    
+
     while ((match = markedTaskPattern.exec(generatedText)) !== null) {
       const [_, title, description, priority, hours, category] = match;
       if (title && !extractedTasks.some(t => t.title === title.trim())) {
@@ -645,14 +645,14 @@ async function generateTasksWithHuggingFace(
         });
       }
     }
-    
+
     // Pattern 3: Look for markdown-style lists if we still don't have tasks
     if (extractedTasks.length === 0) {
       console.log("No tasks found with standard patterns, trying to extract from markdown lists");
-      
+
       // Look for markdown-style lists (- Task: description)
       const markdownListPattern = /(?:^|\n)(?:\-|\*|\d+\.)\s+([^:\n]+)(?::?\s*([^\n]+))?/gi;
-      
+
       while ((match = markdownListPattern.exec(generatedText)) !== null) {
         const [_, titlePart, descriptionPart] = match;
         if (titlePart) {
@@ -670,11 +670,11 @@ async function generateTasksWithHuggingFace(
         }
       }
     }
-    
+
     // Pattern 4: Last resort - look for sentences that might be tasks
     if (extractedTasks.length === 0) {
       console.log("No tasks found in lists, trying to extract from sentences");
-      
+
       // Split by sentences and look for potential task descriptions
       const sentences = generatedText.split(/[.!?][\s\n]+/);
       for (const sentence of sentences) {
@@ -691,11 +691,11 @@ async function generateTasksWithHuggingFace(
         }
       }
     }
-    
+
     // If we found tasks in the text, use them
     if (extractedTasks.length > 0) {
       console.log(`Successfully extracted ${extractedTasks.length} tasks from Hugging Face text response`);
-      return {
+    return {
         tasks: extractedTasks,
         success: true,
         suggestions: [
@@ -706,9 +706,9 @@ async function generateTasksWithHuggingFace(
       };
     }
   }
-  
-  return { tasks: [], success: false };
-}
+
+    return { tasks: [], success: false };
+  }
 
 // Helper functions for generating roles and suggestions
 function getRolesForPlanType(planType: string): string[] {
@@ -730,19 +730,19 @@ function generateSuggestionsForPlan(planType: string, duration: number, particip
     `Regular check-ins will help keep the ${planType} on track.`,
     `Document decisions and progress throughout the ${planType}.`
   ];
-  
+
   if (duration < 14) {
     suggestions.push(`This is a short timeline. Focus on high-priority tasks first.`);
   } else if (duration > 30) {
     suggestions.push(`Consider breaking this ${planType} into phases for better management.`);
   }
-  
+
   if (participants < 3) {
     suggestions.push(`With a small team, each person may need to handle multiple roles.`);
   } else if (participants > 7) {
     suggestions.push(`With a larger team, create sub-teams with clear responsibilities.`);
   }
-  
+
   return suggestions;
 }
 
@@ -756,7 +756,7 @@ function generateTasksWithLocalModel(
   participants: number
 ): AIServiceResponse {
   console.log("Using local task generation model");
-  
+
   // Create basic categories based on plan type
   const categories = {
     'project': ['Planning', 'Design', 'Implementation', 'Testing', 'Review', 'Documentation'],
@@ -764,10 +764,10 @@ function generateTasksWithLocalModel(
     'study': ['Planning', 'Research', 'Content Creation', 'Learning Sessions', 'Review', 'Assessment'],
     'other': ['Planning', 'Execution', 'Coordination', 'Review', 'Documentation']
   };
-  
+
   // Select appropriate categories based on plan type
   const planCategories = categories[planType as keyof typeof categories] || categories['other'];
-  
+
   // Basic task templates that will be customized
   const taskTemplates = [
     {
@@ -794,14 +794,14 @@ function generateTasksWithLocalModel(
       dependencies: ["Kickoff Meeting"]
     }
   ];
-  
+
   // Add objective-based tasks
   const tasks: AITaskSuggestion[] = [...taskTemplates];
-  
+
   // Add task for each objective
   objectives.forEach((objective, index) => {
     const category = planCategories[index % planCategories.length];
-    
+
     // Implementation task
     tasks.push({
       title: `Implement: ${objective.slice(0, 30)}`,
@@ -811,7 +811,7 @@ function generateTasksWithLocalModel(
       category,
       dependencies: ["Assign Team Roles"]
     });
-    
+
     // Review task
     if (index % 2 === 0) {
       tasks.push({
@@ -824,7 +824,7 @@ function generateTasksWithLocalModel(
       });
     }
   });
-  
+
   // Add final tasks
   tasks.push({
     title: "Final Review Meeting",
@@ -834,7 +834,7 @@ function generateTasksWithLocalModel(
     category: "Review",
     dependencies: tasks.filter(t => t.title.startsWith("Implement:")).map(t => t.title)
   });
-  
+
   tasks.push({
     title: "Documentation & Wrap-up",
     description: "Complete all documentation and finalize deliverables",
@@ -843,7 +843,7 @@ function generateTasksWithLocalModel(
     category: "Documentation",
     dependencies: ["Final Review Meeting"]
   });
-  
+
   // Generate roles based on plan type
   const rolesByPlanType = {
     'project': ["Project Manager", "Team Lead", "Developer", "Quality Assurance", "Documentation Specialist"],
@@ -851,28 +851,28 @@ function generateTasksWithLocalModel(
     'study': ["Study Group Leader", "Research Coordinator", "Content Creator", "Session Facilitator", "Note Taker"],
     'other': ["Team Lead", "Coordinator", "Task Owner", "Quality Reviewer"]
   };
-  
+
   const roles = rolesByPlanType[planType as keyof typeof rolesByPlanType] || rolesByPlanType['other'];
-  
+
   // Generate suggestions based on plan type and duration
   const suggestions = [
     `Start with a clear kickoff meeting to ensure everyone understands the objectives.`,
     `Regular check-ins will help keep the ${planType} on track.`,
     `Document decisions and progress throughout the ${planType}.`
   ];
-  
+
   if (duration < 14) {
     suggestions.push(`This is a short timeline. Focus on high-priority tasks first.`);
   } else if (duration > 30) {
     suggestions.push(`Consider breaking this ${planType} into phases for better management.`);
   }
-  
+
   if (participants < 3) {
     suggestions.push(`With a small team, each person may need to handle multiple roles.`);
   } else if (participants > 7) {
     suggestions.push(`With a larger team, create sub-teams with clear responsibilities.`);
   }
-  
+
   // Generate milestones
   const milestones = [
     `Planning Complete (by day ${Math.floor(duration * 0.2)})`,
@@ -880,7 +880,7 @@ function generateTasksWithLocalModel(
     `All Objectives Complete (by day ${Math.floor(duration * 0.8)})`,
     `Final Documentation and Wrap-up (by day ${Math.floor(duration * 0.95)})`
   ];
-  
+
   return {
     tasks,
     roles,
@@ -894,33 +894,33 @@ function generateTasksWithLocalModel(
 async function generateAITasksEnhanced(
   planInput: PlanInput
 ): Promise<AIServiceResponse> {
-  const { 
-    planType, 
-    title, 
-    description, 
-    objectives, 
-    startDate, 
-    endDate, 
-    participants 
+  const {
+    planType,
+    title,
+    description,
+    objectives,
+    startDate,
+    endDate,
+    participants
   } = planInput;
-  
+
   // Calculate total duration in days
   const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   // Check if we can use AI services based on environment variables
-  const hasOpenAIKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY && 
+  const hasOpenAIKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY &&
                        process.env.NEXT_PUBLIC_OPENAI_API_KEY.length > 10;
-  const hasHuggingFaceKey = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY && 
+  const hasHuggingFaceKey = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY &&
                             process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY.length > 10;
-  
+
   // Check if external AI is disabled via environment variable
   const disableExternalAI = process.env.NEXT_PUBLIC_DISABLE_EXTERNAL_AI === 'true';
   const forceLocalModel = process.env.NEXT_PUBLIC_FORCE_LOCAL_MODEL === 'true';
   const skipOpenAI = process.env.NEXT_PUBLIC_SKIP_OPENAI === 'true';
-  
+
   // Force AI models to be used if specified
   const forceAIModels = process.env.NEXT_PUBLIC_FORCE_AI_MODELS === 'true';
-  
+
   if (disableExternalAI || forceLocalModel) {
     console.log("External AI disabled via environment variable, using local model");
     return generateTasksWithLocalModel(
@@ -932,7 +932,7 @@ async function generateAITasksEnhanced(
       participants
     );
   }
-  
+
   // Skip API calls if credentials are not proper to avoid unnecessary errors
   if (!hasOpenAIKey && !hasHuggingFaceKey) {
     console.log("No valid API keys detected, using local generation model");
@@ -945,31 +945,31 @@ async function generateAITasksEnhanced(
       participants
     );
   }
-  
+
   // Track if we encountered quota issues
   let quotaExceeded = false;
   let quotaMessage = "";
-  
+
   // Try OpenAI first unless we're skipping it
   let openAIResponse: AIServiceResponse = { tasks: [], success: false };
   if (hasOpenAIKey && !skipOpenAI) {
-    console.log("Trying to generate tasks with OpenAI...");
+  console.log("Trying to generate tasks with OpenAI...");
     try {
       openAIResponse = await generateTasksWithOpenAI(
-        planType,
-        title,
-        description,
-        objectives,
-        totalDays,
-        participants
-      );
-      
-      if (openAIResponse.success && openAIResponse.tasks.length > 0) {
-        console.log("Successfully generated plan with OpenAI");
-        return openAIResponse;
+    planType,
+    title,
+    description,
+    objectives,
+    totalDays,
+    participants
+  );
+
+  if (openAIResponse.success && openAIResponse.tasks.length > 0) {
+    console.log("Successfully generated plan with OpenAI");
+    return openAIResponse;
       } else {
         console.log("OpenAI returned no tasks, will try alternative service");
-        
+
         // Check if this was a quota issue
         if (openAIResponse.error && openAIResponse.error.includes("quota")) {
           quotaExceeded = true;
@@ -980,35 +980,35 @@ async function generateAITasksEnhanced(
       console.warn("OpenAI generation error:", error);
     }
   }
-  
+
   // If OpenAI fails or is not available, try Hugging Face with multiple attempts
   let huggingFaceResponse: AIServiceResponse = { tasks: [], success: false };
   if (hasHuggingFaceKey) {
     console.log("Trying Hugging Face for task generation...");
-    
+
     // Try up to 3 times with different models/settings
     for (let attempt = 1; attempt <= 3; attempt++) {
       console.log(`Hugging Face attempt ${attempt}/3...`);
       try {
         huggingFaceResponse = await generateTasksWithHuggingFace(
-          planType,
-          title,
-          description,
-          objectives,
-          totalDays,
+    planType,
+    title,
+    description,
+    objectives,
+    totalDays,
           participants,
           attempt // Pass the attempt number to try different models
-        );
-        
-        if (huggingFaceResponse.success && huggingFaceResponse.tasks.length > 0) {
+  );
+
+  if (huggingFaceResponse.success && huggingFaceResponse.tasks.length > 0) {
           console.log(`Successfully generated plan with Hugging Face on attempt ${attempt}`);
-          return huggingFaceResponse;
+    return huggingFaceResponse;
         } else {
           console.log(`Hugging Face attempt ${attempt} returned no tasks`);
-          
+
           // Check if this was a quota or permission issue
-          if (huggingFaceResponse.error && 
-             (huggingFaceResponse.error.includes("permission") || 
+          if (huggingFaceResponse.error &&
+             (huggingFaceResponse.error.includes("permission") ||
               huggingFaceResponse.error.includes("error"))) {
             quotaExceeded = true;
             quotaMessage += "Hugging Face API error. ";
@@ -1018,16 +1018,16 @@ async function generateAITasksEnhanced(
       } catch (error) {
         console.warn(`Hugging Face generation error on attempt ${attempt}:`, error);
       }
-      
+
       // Short delay between attempts
       if (attempt < 3) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
+
     console.log("All Hugging Face attempts failed");
   }
-  
+
   // Last chance - try one more time with OpenAI if it failed earlier
   if (hasOpenAIKey && !skipOpenAI && !openAIResponse.success && !quotaExceeded) {
     console.log("Final attempt with OpenAI using simpler prompt...");
@@ -1042,7 +1042,7 @@ async function generateAITasksEnhanced(
         participants,
         true // Use simpler prompt
       );
-      
+
       if (simpleOpenAIResponse.success && simpleOpenAIResponse.tasks.length > 0) {
         console.log("Successfully generated plan with OpenAI on final attempt");
         return simpleOpenAIResponse;
@@ -1051,16 +1051,16 @@ async function generateAITasksEnhanced(
       console.warn("Final OpenAI attempt error:", error);
     }
   }
-  
+
   // If forcing AI models but all attempts failed, return empty tasks
   if (forceAIModels) {
     console.log("AI services failed but returning empty tasks as AI models are forced");
     return { tasks: [], success: true };
   }
-  
+
   // If both external services fail multiple times, use our local model as a last resort
   console.log("External AI services unavailable or failed after multiple attempts, using local model");
-  
+
   // If we had quota issues, add a message to the response
   const localResponse = generateTasksWithLocalModel(
     planType,
@@ -1070,20 +1070,20 @@ async function generateAITasksEnhanced(
     totalDays,
     participants
   );
-  
+
   if (quotaExceeded) {
     console.log("🚨 API QUOTA ISSUES DETECTED - Using local model instead");
-    
+
     // Add a suggestion about the quota issue
     if (!localResponse.suggestions) {
       localResponse.suggestions = [];
     }
-    
+
     localResponse.suggestions.push(
       `Note: ${quotaMessage}Using rule-based planning instead. To use AI planning, please check your API keys and quotas.`
     );
   }
-  
+
   return localResponse;
 }
 
@@ -1092,7 +1092,7 @@ export async function generatePlan(input: PlanInput): Promise<string> {
   try {
     // Calculate total duration in days
     const totalDays = Math.ceil((input.endDate.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // Create a new plan document immediately to get an ID
     const planRef = await addDoc(collection(db, 'plans'), {
       groupId: input.groupId,
@@ -1107,21 +1107,21 @@ export async function generatePlan(input: PlanInput): Promise<string> {
       planType: input.planType,
       participants: input.participants
     });
-    
+
     // Update the status to indicate AI plan generation is in progress
     await updateDoc(doc(db, 'plans', planRef.id), {
       status: 'generating_ai'
     });
-    
+
     // Generate the plan structure
     let aiPlan: AIGeneratedPlan;
     let usedAI = false;
-    
+
     // Try to use the multi-service AI generation first
     try {
       console.log("Starting enhanced AI plan generation...");
       const aiResponse = await generateAITasksEnhanced(input);
-      
+
       if (aiResponse.success && aiResponse.tasks.length > 0) {
         // Use AI-generated content
         const tasks: Task[] = aiResponse.tasks.map(aiTask => ({
@@ -1133,30 +1133,30 @@ export async function generatePlan(input: PlanInput): Promise<string> {
           category: aiTask.category,
           dependencies: aiTask.dependencies
         }));
-        
+
         // Use AI-generated roles and suggestions if available, otherwise use rule-based generation
-        const roles = aiResponse.roles && aiResponse.roles.length > 0 
-          ? aiResponse.roles 
+        const roles = aiResponse.roles && aiResponse.roles.length > 0
+          ? aiResponse.roles
           : generateRolesAndSuggestions(input, totalDays).roles;
-          
+
         const suggestions = aiResponse.suggestions && aiResponse.suggestions.length > 0
           ? aiResponse.suggestions
           : generateRolesAndSuggestions(input, totalDays).suggestions;
-        
+
         // Add milestone suggestions if available
         if (aiResponse.milestones && aiResponse.milestones.length > 0) {
           aiResponse.milestones.forEach(milestone => {
             suggestions.push(`Milestone: ${milestone}`);
           });
         }
-        
+
         aiPlan = {
           tasks,
           roles,
           suggestions,
           milestones: aiResponse.milestones
         };
-        
+
         usedAI = true;
         console.log("Successfully generated AI plan");
       } else {
@@ -1169,7 +1169,7 @@ export async function generatePlan(input: PlanInput): Promise<string> {
       // Fall back to rule-based generation
       aiPlan = generateRuleBasedPlan(input, totalDays);
     }
-    
+
     // Update the plan in Firestore with generated content
     await updateDoc(doc(db, 'plans', planRef.id), {
       status: 'active',
@@ -1178,7 +1178,7 @@ export async function generatePlan(input: PlanInput): Promise<string> {
       generatedByAI: usedAI,
       milestones: aiPlan.milestones || []
     });
-    
+
     // Create tasks in Firestore
     for (const task of aiPlan.tasks) {
       await addDoc(collection(db, 'tasks'), {
@@ -1197,7 +1197,7 @@ export async function generatePlan(input: PlanInput): Promise<string> {
         createdAt: serverTimestamp(),
       });
     }
-    
+
     return planRef.id;
   } catch (error) {
     console.error('Error generating plan:', error);
@@ -1210,14 +1210,14 @@ function calculateTaskDueDate(startDate: Date, endDate: Date, totalDays: number,
   // Create a range of days between start and end
   const startTime = startDate.getTime();
   const rangeInMs = endDate.getTime() - startTime;
-  
+
   // Set default offsets
   const minOffset = 24 * 60 * 60 * 1000; // At least 1 day after start
   const maxOffset = rangeInMs - minOffset; // At least 1 day before end
-  
+
   // Position tasks more intelligently based on keywords in the title
   const lowerTitle = taskTitle.toLowerCase();
-  
+
   // Initial tasks
   if (
     lowerTitle.includes("kickoff") ||
@@ -1230,7 +1230,7 @@ function calculateTaskDueDate(startDate: Date, endDate: Date, totalDays: number,
     // Position in the first 20% of the timeline
     return new Date(startTime + (rangeInMs * 0.1) + (Math.random() * rangeInMs * 0.1));
   }
-  
+
   // Middle tasks
   if (
     lowerTitle.includes("develop") ||
@@ -1243,7 +1243,7 @@ function calculateTaskDueDate(startDate: Date, endDate: Date, totalDays: number,
     // Position in the middle 50% of the timeline
     return new Date(startTime + (rangeInMs * 0.25) + (Math.random() * rangeInMs * 0.5));
   }
-  
+
   // Final tasks
   if (
     lowerTitle.includes("review") ||
@@ -1258,13 +1258,13 @@ function calculateTaskDueDate(startDate: Date, endDate: Date, totalDays: number,
     // Position in the last 30% of the timeline
     return new Date(startTime + (rangeInMs * 0.7) + (Math.random() * rangeInMs * 0.25));
   }
-  
+
   // For tasks without specific positioning keywords, distribute randomly but more evenly
   // Divide the timeline into segments based on total days for better distribution
   const segmentCount = Math.max(5, Math.min(10, Math.floor(totalDays / 3)));
   const segmentSize = rangeInMs / segmentCount;
   const segmentIndex = Math.floor(Math.random() * segmentCount);
-  
+
   return new Date(startTime + (segmentIndex * segmentSize) + (Math.random() * segmentSize));
 }
 
@@ -1272,76 +1272,76 @@ function calculateTaskDueDate(startDate: Date, endDate: Date, totalDays: number,
 function generateRolesAndSuggestions(input: PlanInput, totalDays: number): { roles: string[], suggestions: string[] } {
   const roles: string[] = [];
   const suggestions: string[] = [];
-  
+
   // Add plan suggestions based on duration
   if (totalDays < 7) {
     suggestions.push("This is a short timeline. Consider focusing on high-priority objectives only.");
   } else if (totalDays > 30) {
     suggestions.push("Consider breaking this plan into multiple phases for better management.");
   }
-  
+
   // Add suggestions based on number of participants
   if (input.participants < 3) {
     suggestions.push("With a small team, consider assigning multiple roles to each person.");
   } else if (input.participants > 8) {
     suggestions.push("With a large team, consider creating sub-teams with clear responsibilities.");
   }
-  
+
   // Add role suggestions based on plan type and objectives
   if (input.planType === 'project') {
     roles.push('Project Manager', 'Team Lead');
     suggestions.push("Assign a dedicated Project Manager to track progress.");
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('research'))) {
       roles.push('Research Specialist');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('design'))) {
       roles.push('Designer');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('develop') || obj.toLowerCase().includes('code'))) {
       roles.push('Developer');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('test') || obj.toLowerCase().includes('quality'))) {
       roles.push('Quality Assurance');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('document'))) {
       roles.push('Technical Writer');
     }
   } else if (input.planType === 'event') {
     roles.push('Event Coordinator', 'Logistics Manager');
     suggestions.push("Create a detailed day-of timeline for your event.");
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('catering') || obj.toLowerCase().includes('food'))) {
       roles.push('Catering Coordinator');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('promotion') || obj.toLowerCase().includes('marketing'))) {
       roles.push('Marketing Specialist');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('sponsor'))) {
       roles.push('Sponsorship Manager');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('speaker') || obj.toLowerCase().includes('presentation'))) {
       roles.push('Speaker Coordinator');
     }
   } else if (input.planType === 'study') {
     roles.push('Study Lead', 'Note Taker');
     suggestions.push("Schedule regular check-ins to keep everyone on track with their study goals.");
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('research'))) {
       roles.push('Research Coordinator');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('present'))) {
       roles.push('Presentation Coordinator');
     }
-    
+
     if (input.objectives.some(obj => obj.toLowerCase().includes('review') || obj.toLowerCase().includes('quiz'))) {
       roles.push('Review Session Leader');
     }
@@ -1350,7 +1350,7 @@ function generateRolesAndSuggestions(input: PlanInput, totalDays: number): { rol
     roles.push('Team Lead', 'Coordinator');
     suggestions.push("Clearly define roles and responsibilities at the start of your plan.");
   }
-  
+
   return { roles, suggestions };
 }
 
@@ -1358,16 +1358,16 @@ function generateRolesAndSuggestions(input: PlanInput, totalDays: number): { rol
 function generateRuleBasedPlan(input: PlanInput, totalDays: number): AIGeneratedPlan {
   const tasks: Task[] = [];
   const { roles, suggestions } = generateRolesAndSuggestions(input, totalDays);
-  
+
   // Generate tasks based on the plan type
   generateTasksBasedOnPlanType(input, tasks, totalDays);
-  
+
   // Add generic tasks that apply to all plan types
   generateGenericTasks(input, tasks);
-  
+
   // Add tasks specifically based on objectives
   generateObjectiveBasedTasks(input, tasks, totalDays);
-  
+
   return {
     tasks,
     roles,
@@ -1386,7 +1386,7 @@ function generateTasksBasedOnPlanType(input: PlanInput, tasks: Task[], totalDays
     estimatedHours: 1,
     category: 'Planning'
   });
-  
+
   // Add milestone review at the halfway point
   if (totalDays > 10) {
     const halfwayDate = new Date(input.startDate.getTime() + (totalDays / 2) * 24 * 60 * 60 * 1000);
@@ -1399,7 +1399,7 @@ function generateTasksBasedOnPlanType(input: PlanInput, tasks: Task[], totalDays
       category: 'Review'
     });
   }
-  
+
   // Add specific tasks based on plan type
   if (input.planType === 'project') {
     // Project-specific tasks
@@ -1609,12 +1609,12 @@ function generateObjectiveBasedTasks(input: PlanInput, tasks: Task[], totalDays:
     // Calculate a due date that spaces objectives throughout the timeline
     const objectiveProgress = (index + 1) / input.objectives.length;
     const daysOffset = Math.floor(totalDays * objectiveProgress * 0.7); // Use 70% of the timeline for objectives
-    
+
     const dueDate = new Date(
-      input.startDate.getTime() + 
+      input.startDate.getTime() +
       daysOffset * 24 * 60 * 60 * 1000
     );
-    
+
     // For projects, create implementation tasks
     if (input.planType === 'project') {
       tasks.push({
@@ -1626,7 +1626,7 @@ function generateObjectiveBasedTasks(input: PlanInput, tasks: Task[], totalDays:
         dependencies: ['Resource Allocation'],
         category: 'Implementation'
       });
-      
+
       // Add a review task a few days after implementation
       const reviewDate = new Date(dueDate.getTime() + 3 * 24 * 60 * 60 * 1000);
       // Only add if the review date is before the end date
@@ -1641,7 +1641,7 @@ function generateObjectiveBasedTasks(input: PlanInput, tasks: Task[], totalDays:
           category: 'Review'
         });
       }
-    } 
+    }
     // For study groups, create study sessions
     else if (input.planType === 'study') {
       tasks.push({
@@ -1691,7 +1691,7 @@ function generateGenericTasks(input: PlanInput, tasks: Task[]) {
     estimatedHours: 2,
     category: 'Review'
   });
-  
+
   // Add documentation task
   tasks.push({
     title: 'Complete Documentation',
@@ -1701,7 +1701,7 @@ function generateGenericTasks(input: PlanInput, tasks: Task[]) {
     estimatedHours: 3,
     category: 'Documentation'
   });
-  
+
   // Add feedback collection task
   tasks.push({
     title: 'Collect Feedback',
